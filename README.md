@@ -27,7 +27,9 @@ foundry-dao/
 │   ├── BoxTest.t.sol        # Box contract tests
 │   ├── GovTokenTest.t.sol   # Governance token tests
 │   ├── MyGovernorTest.t.sol # Complete DAO workflow tests
-│   └── TimeLockTest.t.sol   # Timelock functionality tests
+│   ├── TimeLockTest.t.sol   # Timelock functionality tests
+│   ├── ScriptTests.t.sol    # Deployment script validation
+│   └── FuzzTests.t.sol      # Property-based fuzz testing
 ├── script/
 │   ├── DeployDAO.s.sol      # Complete DAO deployment
 │   ├── ProposeAndVote.s.sol # Create governance proposals
@@ -118,7 +120,16 @@ forge script script/TestDeployDAO.s.sol --rpc-url http://127.0.0.1:8545 --broadc
 
 ## Testing
 
-The project includes comprehensive tests with **92% coverage**:
+The project includes comprehensive tests with **42 total tests** covering multiple aspects:
+
+### Test Categories
+
+1. **Unit Tests** (18 tests) - Core contract functionality
+2. **Integration Tests** (12 tests) - Full DAO workflow testing  
+3. **Script Tests** (12 tests) - Deployment script validation
+4. **Fuzz Tests** (12 tests) - Property-based testing with random inputs
+
+### Running Tests
 
 ```bash
 # Run all tests
@@ -127,11 +138,36 @@ forge test
 # Run with verbosity
 forge test -vvv
 
-# Run specific test file
-forge test --match-contract MyGovernorTest
+# Run specific test categories
+forge test --match-contract MyGovernorTest    # Integration tests
+forge test --match-contract ScriptTests      # Script tests  
+forge test --match-contract FuzzTests        # Fuzz tests
 
 # Generate coverage report
 forge coverage
+```
+
+### Test Coverage
+
+The project maintains high test coverage across all contracts:
+
+- **Box.sol**: 100% coverage
+- **GovToken.sol**: 100% coverage  
+- **MyGovernor.sol**: 85.71% coverage
+- **TimeLock.sol**: Comprehensive role and delay testing
+
+### Fuzz Testing
+
+Our fuzz tests validate contract behavior under randomized conditions:
+
+- **Token Operations**: Minting, transfers, delegation with random amounts
+- **Governance Flow**: Proposals, voting, execution with random parameters
+- **Timelock Behavior**: Various delays and execution timing
+- **Multi-user Scenarios**: Random user interactions and token distributions
+
+```bash
+# Run fuzz tests with more iterations
+forge test --match-contract FuzzTests --fuzz-runs 1000
 ```
 
 ## Deployment & Scripts
@@ -232,6 +268,18 @@ This project uses OpenZeppelin Contracts v5, which has breaking changes:
 
 - `Ownable` constructor requires `initialOwner` parameter
 - `TimelockController` uses `DEFAULT_ADMIN_ROLE` instead of `TIMELOCK_ADMIN_ROLE`
+
+### Contract Size Optimization
+
+The project includes compiler optimizations in `foundry.toml` to ensure contracts fit within the EIP-170 size limit (24,576 bytes):
+
+```toml
+optimizer = true
+optimizer_runs = 200
+via_ir = true
+```
+
+Without these optimizations, the `MyGovernor` contract would exceed the size limit due to multiple inheritance from OpenZeppelin governance contracts.
 
 ### Production Considerations
 
